@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>نتيجة الثانوية العامة 2026 - الدور الأول</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#243247; --line:#334155;
+    --txt:#e2e8f0; --muted:#94a3b8; --brand:#3b82f6; --brand2:#2563eb;
+    --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --gray:#64748b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:"Segoe UI",Tahoma,Arial,sans-serif; background:var(--bg);
+    color:var(--txt); line-height:1.6; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:18px 16px 60px}
+  header{text-align:center; padding:22px 0 10px}
+  header h1{margin:0 0 6px; font-size:1.5rem}
+  header p{margin:0; color:var(--muted); font-size:.95rem}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin-top:16px}
+  .tabs{display:flex; gap:8px; background:var(--card2); padding:5px; border-radius:12px; margin-bottom:14px}
+  .tabs button{flex:1; padding:11px; border:0; border-radius:9px; background:transparent; color:var(--muted);
+    font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit}
+  .tabs button.active{background:var(--brand); color:#fff}
+  .searchbox{display:flex; gap:10px}
+  input[type=text],input[type=search]{
+    flex:1; padding:14px 16px; font-size:1.05rem; border-radius:12px; border:1px solid var(--line);
+    background:#0b1424; color:var(--txt); font-family:inherit; outline:none; width:100%
+  }
+  input:focus{border-color:var(--brand)}
+  .btn{padding:14px 20px; border:0; border-radius:12px; background:var(--brand2); color:#fff;
+    font-size:1.05rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap}
+  .btn:disabled{opacity:.5; cursor:default}
+  .hint{color:var(--muted); font-size:.85rem; margin-top:10px; text-align:center}
+  #status{text-align:center; color:var(--muted); padding:14px 0}
+  .bar{height:8px; background:var(--card2); border-radius:99px; overflow:hidden; margin:12px auto; max-width:340px}
+  .bar > i{display:block; height:100%; width:0; background:var(--brand); transition:width .15s}
+  .results{margin-top:6px}
+  .result{background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:16px; margin-top:12px}
+  .result .name{font-size:1.2rem; font-weight:800; margin-bottom:12px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .cell{background:#0b1424; border-radius:10px; padding:10px 12px}
+  .cell .k{color:var(--muted); font-size:.8rem}
+  .cell .v{font-size:1.15rem; font-weight:700; margin-top:2px}
+  .badge{display:inline-block; padding:6px 14px; border-radius:99px; font-weight:800; font-size:.95rem}
+  .b-ok{background:rgba(34,197,94,.15); color:#4ade80}
+  .b-warn{background:rgba(245,158,11,.15); color:#fbbf24}
+  .b-bad{background:rgba(239,68,68,.15); color:#f87171}
+  .b-gray{background:rgba(100,116,139,.2); color:#cbd5e1}
+  .list-item{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:13px 14px;
+    background:var(--card2); border:1px solid var(--line); border-radius:12px; margin-top:10px; cursor:pointer}
+  .list-item:hover{border-color:var(--brand)}
+  .list-item .li-name{font-weight:700}
+  .list-item .li-seat{color:var(--muted); font-size:.85rem}
+  .list-item .li-total{font-weight:800; color:#93c5fd; white-space:nowrap}
+  .empty{text-align:center; color:var(--muted); padding:26px 10px}
+  .count{color:var(--muted); font-size:.9rem; margin:14px 2px 0}
+  footer{text-align:center; color:var(--muted); font-size:.8rem; margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>نتيجة الثانوية العامة 2026</h1>
+    <p>الدور الأول — نظام حديث · بحث بالاسم أو برقم الجلوس</p>
+  </header>
+
+  <div id="status">
+    <div>جارٍ تحميل قاعدة البيانات…</div>
+    <div class="bar"><i id="prog"></i></div>
+    <div id="statusPct" style="font-size:.85rem"></div>
+  </div>
+
+  <div class="card" id="app" style="display:none">
+    <div class="tabs">
+      <button id="tabName" class="active" onclick="setMode('name')">🔎 بحث بالاسم</button>
+      <button id="tabSeat" onclick="setMode('seat')">🔢 رقم الجلوس</button>
+    </div>
+    <div class="searchbox">
+      <input id="q" type="text" autocomplete="off" placeholder="اكتب الاسم…">
+      <button class="btn" id="go" onclick="doSearch()">بحث</button>
+    </div>
+    <div class="hint" id="hint">اكتب الاسم كاملاً أو جزء منه ثم اضغط بحث</div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <footer>
+    عدد الطلاب في القاعدة: <span id="dbCount">—</span> · النتيجة استرشادية، المرجع الرسمي هو وزارة التربية والتعليم.
+  </footer>
+</div>
+
+<script>
+const CASES = ["ناجح دور أول","دور ثان","راسب دور أول","غياب كلى دور أول"];
+const CASE_CLASS = ["b-ok","b-warn","b-bad","b-gray"];
+const MAX_TOTAL = 320;
+
+let seats, totalsX2, cases, namesArr, searchBlob, startOffsets, seatIndex;
+let N = 0, mode = 'name';
+
+// تطبيع النص العربي للبحث
+function norm(s){
+  return s
+    .replace(/[ً-ٰٟـ]/g,'')      // تشكيل + تطويل
+    .replace(/[أإآٱ]/g,'ا') // أ إ آ ٱ -> ا
+    .replace(/ى/g,'ي')                      // ى -> ي
+    .replace(/ة/g,'ه')                      // ة -> ه
+    .replace(/ؤ/g,'و')                      // ؤ -> و
+    .replace(/ئ/g,'ي')                      // ئ -> ي
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+async function load(){
+  try{
+    const res = await fetch('data.tsv.gz');
+    if(!res.ok) throw new Error('http '+res.status);
+    const total = +(res.headers.get('content-length')||0);
+    let loaded = 0;
+    const prog = document.getElementById('prog');
+    const pct = document.getElementById('statusPct');
+    const counter = new TransformStream({
+      transform(chunk, ctrl){
+        loaded += chunk.byteLength;
+        if(total){ const p = Math.min(99, Math.round(loaded/total*100));
+          prog.style.width = p+'%'; pct.textContent = p+'%'; }
+        else { pct.textContent = (loaded/1048576).toFixed(1)+' م.ب'; }
+        ctrl.enqueue(chunk);
+      }
+    });
+    let stream = res.body.pipeThrough(counter);
+    if('DecompressionStream' in window){
+      stream = stream.pipeThrough(new DecompressionStream('gzip'));
+    }
+    const text = await new Response(stream).text();
+    document.getElementById('statusPct').textContent = 'جارٍ التجهيز…';
+    await new Promise(r=>setTimeout(r,30));
+    parse(text);
+    document.getElementById('status').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('dbCount').textContent = N.toLocaleString('ar-EG');
+    document.getElementById('q').focus();
+  }catch(e){
+    document.getElementById('status').innerHTML =
+      '<div style="color:#f87171">تعذّر تحميل البيانات: '+e.message+
+      '<br>لازم يُفتح الموقع عبر رابط (استضافة/سيرفر) مش ملف محلي.</div>';
+  }
+}
+
+function parse(text){
+  const lines = text.split('\n');
+  N = lines.length;
+  if(lines[N-1]==='') N--; // trailing
+  seats = new Int32Array(N);
+  totalsX2 = new Uint16Array(N);
+  cases = new Uint8Array(N);
+  namesArr = new Array(N);
+  const norms = new Array(N);
+  startOffsets = new Int32Array(N);
+  seatIndex = new Map();
+  let pos = 1; // بعد '\n' الأولى
+  for(let i=0;i<N;i++){
+    const line = lines[i];
+    const t1 = line.indexOf('\t');
+    const t2 = line.indexOf('\t', t1+1);
+    const t3 = line.indexOf('\t', t2+1);
+    const seat = +line.slice(0,t1);
+    seats[i] = seat;
+    totalsX2[i] = Math.round(parseFloat(line.slice(t1+1,t2))*2)||0;
+    cases[i] = +line.slice(t2+1,t3)||0;
+    const nm = line.slice(t3+1);
+    namesArr[i] = nm;
+    const nn = norm(nm);
+    norms[i] = nn;
+    startOffsets[i] = pos;
+    pos += nn.length + 1;
+    seatIndex.set(seat, i);
+  }
+  searchBlob = '\n' + norms.join('\n') + '\n';
+}
+
+// binary search: أكبر i بحيث startOffsets[i] <= m
+function recAt(m){
+  let lo=0, hi=N-1, ans=0;
+  while(lo<=hi){ const mid=(lo+hi)>>1;
+    if(startOffsets[mid]<=m){ans=mid; lo=mid+1;} else hi=mid-1; }
+  return ans;
+}
+
+function totalStr(i){
+  const t = totalsX2[i]/2;
+  return (Number.isInteger(t)? t : t.toFixed(1));
+}
+function pctStr(i){ return (totalsX2[i]/2/MAX_TOTAL*100).toFixed(2)+'%'; }
+
+function setMode(m){
+  mode = m;
+  document.getElementById('tabName').classList.toggle('active', m==='name');
+  document.getElementById('tabSeat').classList.toggle('active', m==='seat');
+  const q = document.getElementById('q');
+  if(m==='seat'){ q.type='text'; q.inputMode='numeric'; q.placeholder='اكتب رقم الجلوس…';
+    document.getElementById('hint').textContent='اكتب رقم جلوس الطالب كاملاً ثم اضغط بحث'; }
+  else { q.inputMode='text'; q.placeholder='اكتب الاسم…';
+    document.getElementById('hint').textContent='اكتب الاسم كاملاً أو جزء منه ثم اضغط بحث'; }
+  q.value=''; document.getElementById('results').innerHTML=''; q.focus();
+}
+
+function resultCardHTML(i){
+  const c = cases[i];
+  return '<div class="result">'+
+    '<div class="name">'+esc(namesArr[i])+'</div>'+
+    '<div style="margin-bottom:12px"><span class="badge '+CASE_CLASS[c]+'">'+CASES[c]+'</span></div>'+
+    '<div class="grid">'+
+      cell('رقم الجلوس', seats[i]) +
+      cell('المجموع', totalStr(i)+' / '+MAX_TOTAL) +
+      cell('النسبة المئوية', pctStr(i)) +
+      cell('الحالة', CASES[c]) +
+    '</div></div>';
+}
+function cell(k,v){ return '<div class="cell"><div class="k">'+k+'</div><div class="v">'+esc(String(v))+'</div></div>'; }
+function esc(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function showByIndex(i){
+  document.getElementById('results').innerHTML = resultCardHTML(i);
+}
+
+function doSearch(){
+  const raw = document.getElementById('q').value.trim();
+  const box = document.getElementById('results');
+  if(!raw){ box.innerHTML=''; return; }
+
+  if(mode==='seat'){
+    const seat = parseInt(raw.replace(/[^\d]/g,''),10);
+    if(isNaN(seat)){ box.innerHTML='<div class="empty">اكتب رقم جلوس صحيح</div>'; return; }
+    const i = seatIndex.get(seat);
+    if(i===undefined){ box.innerHTML='<div class="empty">لا يوجد طالب بهذا الرقم في القاعدة.</div>'; return; }
+    box.innerHTML = resultCardHTML(i);
+    return;
+  }
+
+  // بحث بالاسم
+  const q = norm(raw);
+  if(q.length<2){ box.innerHTML='<div class="empty">اكتب حرفين على الأقل.</div>'; return; }
+  const MAX = 300;
+  const found = [];
+  let seen = -1, from = 0, idx;
+  while((idx = searchBlob.indexOf(q, from)) !== -1){
+    const rec = recAt(idx);
+    if(rec !== seen){ found.push(rec); seen = rec; if(found.length>=MAX) break; }
+    from = idx + 1;
+  }
+  if(found.length===0){ box.innerHTML='<div class="empty">لا توجد نتائج مطابقة للاسم المكتوب.</div>'; return; }
+
+  if(found.length===1){ box.innerHTML = resultCardHTML(found[0]); return; }
+
+  // ترتيب بالمجموع تنازلياً
+  found.sort((a,b)=>totalsX2[b]-totalsX2[a]);
+  let html = '<div class="count">عدد النتائج: '+found.length.toLocaleString('ar-EG')+
+    (found.length>=MAX?'+ (اكتب اسماً أدق)':'')+' — اضغط على الاسم لعرض التفاصيل</div>';
+  for(const i of found){
+    html += '<div class="list-item" onclick="showByIndex('+i+')">'+
+      '<div><div class="li-name">'+esc(namesArr[i])+'</div>'+
+      '<div class="li-seat">رقم الجلوس: '+seats[i]+'</div></div>'+
+      '<div class="li-total">'+totalStr(i)+'</div></div>';
+  }
+  box.innerHTML = html;
+}
+
+document.getElementById('q') && document.getElementById('q').addEventListener('keydown', e=>{
+  if(e.key==='Enter') doSearch();
+});
+
+load();
+</script>
+</body>
+</html>
